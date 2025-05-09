@@ -1,2 +1,3 @@
-# valoris
-sistema de gerenciamento de um banco com java (gerência e configuração de mudança - 2025.1)
+ - Nome do sistema: Valoris
+ - Integrantes do grupo: Giovanna Batista, Pedro Vinícius e Wisla Argolo
+ - Linguagem de Programação e Stack de desenvolvimento: Java com Spring Boot
