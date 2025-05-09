@@ -1,0 +1,3 @@
+ - Nome do sistema: Valoris
+ - Integrantes do grupo: Giovanna Batista, Pedro Vinícius e Wisla Argolo (respectivos usuários no Github: giovvbat, pedropinho60, wislaargolo)
+ - Linguagem de Programação e Stack de desenvolvimento: Java com Spring Boot
