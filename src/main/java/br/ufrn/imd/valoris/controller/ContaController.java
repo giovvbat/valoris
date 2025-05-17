@@ -1,5 +1,6 @@
 package br.ufrn.imd.valoris.controller;
 
+import br.ufrn.imd.valoris.dto.ContaDTO;
 import br.ufrn.imd.valoris.model.ContaModel;
 import br.ufrn.imd.valoris.service.ContaService;
 import jakarta.validation.Valid;
@@ -18,7 +19,7 @@ public class ContaController {
     }
 
     @PostMapping
-    public ContaModel cadastrarConta(@RequestBody @Valid ContaModel conta) {
-        return contaService.cadastrarConta(conta.getNumero());
+    public ContaModel cadastrarConta(@RequestBody @Valid ContaDTO contaDTO) {
+        return contaService.cadastrarConta(contaDTO);
     }
 }
