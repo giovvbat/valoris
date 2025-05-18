@@ -51,6 +51,6 @@ public class ContaService {
     }
 
     private ContaModel findByNumeroIfExists(String numero) {
-        return contaDao.findByNumero(numero).orElseThrow(() -> new ResourceNotFoundException(String.format("Conta de numero {} nao encontrada.")));
+        return contaDao.findByNumero(numero).orElseThrow(() -> new ResourceNotFoundException(String.format("Conta de numero %s nao encontrada.", numero)));
     }
 }
