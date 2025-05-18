@@ -25,6 +25,11 @@ public class ContaService {
         return contaDao.saveConta(conta);
     }
 
+    public Double consultarSaldo(String numero) {
+        ContaModel conta = findByNumeroIfExists(numero);
+        return conta.getSaldo();
+    }
+
     public ContaModel debitarConta(String numero, TransacaoDTO transacaoDTO) {
         ContaModel conta = findByNumeroIfExists(numero);
         conta.debitar(transacaoDTO.valor());
