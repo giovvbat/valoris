@@ -2,6 +2,7 @@ package br.ufrn.imd.valoris.controller;
 
 import br.ufrn.imd.valoris.dto.ContaDTO;
 import br.ufrn.imd.valoris.dto.TransacaoDTO;
+import br.ufrn.imd.valoris.dto.TransferenciaDTO;
 import br.ufrn.imd.valoris.model.ContaModel;
 import br.ufrn.imd.valoris.service.ContaService;
 import jakarta.validation.Valid;
@@ -29,5 +30,10 @@ public class ContaController {
     @PutMapping("/{numero}/creditar")
     public ContaModel creditarConta(@PathVariable String numero, @RequestBody @Valid TransacaoDTO transacaoDTO) {
         return contaService.creditarConta(numero, transacaoDTO);
+    }
+
+    @PutMapping("/{numero}/transferir")
+    public ContaModel transferir(@PathVariable("numero") String numeroOrigem, @RequestBody @Valid TransferenciaDTO transferenciaDTO) {
+        return contaService.transferir(numeroOrigem, transferenciaDTO);
     }
 }

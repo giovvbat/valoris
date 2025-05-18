@@ -3,6 +3,7 @@ package br.ufrn.imd.valoris.service;
 import br.ufrn.imd.valoris.dao.ContaDao;
 import br.ufrn.imd.valoris.dto.ContaDTO;
 import br.ufrn.imd.valoris.dto.TransacaoDTO;
+import br.ufrn.imd.valoris.dto.TransferenciaDTO;
 import br.ufrn.imd.valoris.exception.ResourceNotFoundException;
 import br.ufrn.imd.valoris.model.ContaModel;
 import jakarta.validation.Valid;
@@ -34,6 +35,14 @@ public class ContaService {
         ContaModel conta = findByNumeroIfExists(numero);
         conta.creditar(transacaoDTO.valor());
         return conta;
+    }
+
+    public ContaModel transferir(String numeroOrigem, TransferenciaDTO transferenciaDTO) {
+        ContaModel contaOrigem = findByNumeroIfExists(numeroOrigem);
+        ContaModel contaDestino = findByNumeroIfExists(transferenciaDTO.numeroDestino());
+        contaOrigem.debitar(transferenciaDTO.valor());
+        contaDestino.creditar(transferenciaDTO.valor());
+        return contaOrigem;
     }
 
     private ContaModel findByNumeroIfExists(String numero) {
