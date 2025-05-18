@@ -24,10 +24,10 @@ public class ContaService {
         return contaDao.saveConta(conta);
     }
 
-    public ContaModel debitarConta(String numero, @Valid TransacaoDTO transacaoDTO) {
+    public ContaModel debitarConta(String numero, TransacaoDTO transacaoDTO) {
         ContaModel conta = findByNumeroIfExists(numero);
         conta.debitar(transacaoDTO.valor());
-        return contaDao.saveConta(conta);
+        return conta;
     }
 
     private ContaModel findByNumeroIfExists(String numero) {
