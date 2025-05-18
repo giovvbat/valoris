@@ -22,6 +22,11 @@ public class ContaController {
         return contaService.cadastrarConta(contaDTO);
     }
 
+    @GetMapping("/{numero}/saldo")
+    public Double consultarSaldo(@PathVariable String numero) {
+        return contaService.consultarSaldo(numero);
+    }
+
     @PutMapping("/{numero}/debitar")
     public ContaModel debitarConta(@PathVariable String numero, @RequestBody @Valid TransacaoDTO transacaoDTO) {
         return contaService.debitarConta(numero, transacaoDTO);
