@@ -15,4 +15,8 @@ public class ContaModel {
     public void debitar(@NotNull @Positive Double valor) {
         this.saldo = this.saldo - valor;
     }
+
+    public void creditar(@NotNull @Positive Double valor) {
+        this.saldo = this.saldo + valor;
+    }
 }

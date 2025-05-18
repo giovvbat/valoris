@@ -25,4 +25,9 @@ public class ContaController {
     public ContaModel debitarConta(@PathVariable String numero, @RequestBody @Valid TransacaoDTO transacaoDTO) {
         return contaService.debitarConta(numero, transacaoDTO);
     }
+
+    @PutMapping("/{numero}/creditar")
+    public ContaModel creditarConta(@PathVariable String numero, @RequestBody @Valid TransacaoDTO transacaoDTO) {
+        return contaService.creditarConta(numero, transacaoDTO);
+    }
 }

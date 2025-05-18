@@ -30,6 +30,12 @@ public class ContaService {
         return conta;
     }
 
+    public ContaModel creditarConta(String numero, TransacaoDTO transacaoDTO) {
+        ContaModel conta = findByNumeroIfExists(numero);
+        conta.creditar(transacaoDTO.valor());
+        return conta;
+    }
+
     private ContaModel findByNumeroIfExists(String numero) {
         return contaDao.findByNumero(numero).orElseThrow(() -> new ResourceNotFoundException(String.format("Conta de numero {} nao encontrada.")));
     }
