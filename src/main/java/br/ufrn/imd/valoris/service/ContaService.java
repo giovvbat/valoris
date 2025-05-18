@@ -4,9 +4,9 @@ import br.ufrn.imd.valoris.dao.ContaDao;
 import br.ufrn.imd.valoris.dto.ContaDTO;
 import br.ufrn.imd.valoris.dto.TransacaoDTO;
 import br.ufrn.imd.valoris.dto.TransferenciaDTO;
+import br.ufrn.imd.valoris.exception.ResourceAlreadyExistsException;
 import br.ufrn.imd.valoris.exception.ResourceNotFoundException;
 import br.ufrn.imd.valoris.model.ContaModel;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,6 +18,10 @@ public class ContaService {
     }
 
     public ContaModel cadastrarConta(ContaDTO contaDTO) {
+        if (contaDao.findByNumero(contaDTO.numero()).isPresent()) {
+            throw new ResourceAlreadyExistsException(String.format("Conta de número %s já existe.", contaDTO.numero()));
+        }
+
         ContaModel conta = new ContaModel();
         conta.setNumero(contaDTO.numero());
         conta.setSaldo(0.0);
