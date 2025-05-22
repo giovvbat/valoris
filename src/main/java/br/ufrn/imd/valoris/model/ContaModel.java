@@ -12,11 +12,11 @@ public class ContaModel {
     @NotNull
     private Double saldo;
 
-    public void debitar(@NotNull @Positive Double valor) {
+    public void debitar(@NotNull Double valor) {
         this.saldo = this.saldo - valor;
     }
 
-    public void creditar(@NotNull @Positive Double valor) {
+    public void creditar(@NotNull Double valor) {
         this.saldo = this.saldo + valor;
     }
 }
