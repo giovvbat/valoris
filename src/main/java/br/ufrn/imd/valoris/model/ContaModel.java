@@ -2,7 +2,7 @@ package br.ufrn.imd.valoris.model;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 @Data
@@ -12,11 +12,11 @@ public class ContaModel {
     @NotNull
     private Double saldo;
 
-    public void debitar(@NotNull Double valor) {
+    public void debitar(@PositiveOrZero @NotNull Double valor) {
         this.saldo = this.saldo - valor;
     }
 
-    public void creditar(@NotNull Double valor) {
+    public void creditar(@PositiveOrZero @NotNull Double valor) {
         this.saldo = this.saldo + valor;
     }
 }
