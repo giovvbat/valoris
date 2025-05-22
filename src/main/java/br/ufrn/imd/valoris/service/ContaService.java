@@ -2,9 +2,11 @@ package br.ufrn.imd.valoris.service;
 
 import br.ufrn.imd.valoris.dao.ContaDao;
 import br.ufrn.imd.valoris.dto.ContaDTO;
+import br.ufrn.imd.valoris.dto.RenderJurosDTO;
 import br.ufrn.imd.valoris.dto.TransacaoDTO;
 import br.ufrn.imd.valoris.dto.TransferenciaDTO;
 import br.ufrn.imd.valoris.enums.TipoConta;
+import br.ufrn.imd.valoris.exception.OperacaoInvalidaException;
 import br.ufrn.imd.valoris.exception.ResourceAlreadyExistsException;
 import br.ufrn.imd.valoris.exception.ResourceNotFoundException;
 import br.ufrn.imd.valoris.model.ContaBonusModel;
@@ -12,6 +14,8 @@ import br.ufrn.imd.valoris.model.ContaModel;
 
 import java.math.BigDecimal;
 
+import br.ufrn.imd.valoris.model.ContaPoupancaModel;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,6 +38,14 @@ public class ContaService {
             contaBonus.setPontuation(10);
 
             return contaDao.saveConta(contaBonus);
+        }
+
+        if (contaDTO.tipoConta() == TipoConta.POUPANCA) {
+            ContaPoupancaModel contaPoupanca = new ContaPoupancaModel();
+            contaPoupanca.setNumero(contaDTO.numero());
+            contaPoupanca.setSaldo(0.0);
+
+            return contaDao.saveConta(contaPoupanca);
         }
 
         ContaModel conta = new ContaModel();
@@ -82,6 +94,17 @@ public class ContaService {
     private void incrementarPontuacao(ContaModel conta, Integer pontosIncrementados) {
         if (conta instanceof ContaBonusModel contaBonus) {
             contaBonus.setPontuation(contaBonus.getPontuation() + pontosIncrementados);
+        }
+    }
+
+    public ContaModel renderJuros(String numero, RenderJurosDTO renderJurosDTO) {
+        ContaModel conta = findByNumeroIfExists(numero);
+
+        if(conta instanceof ContaPoupancaModel contaPoupanca) {
+            contaPoupanca.renderJuros(renderJurosDTO.taxa());
+            return contaPoupanca;
+        } else {
+            throw new OperacaoInvalidaException("Não é possível render juros. Conta não é do tipo poupança.");
         }
     }
 }

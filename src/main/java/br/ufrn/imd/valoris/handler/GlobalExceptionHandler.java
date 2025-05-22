@@ -1,6 +1,7 @@
 package br.ufrn.imd.valoris.handler;
 
 import br.ufrn.imd.valoris.dto.RespostaApiDTO;
+import br.ufrn.imd.valoris.exception.OperacaoInvalidaException;
 import br.ufrn.imd.valoris.exception.ResourceAlreadyExistsException;
 import br.ufrn.imd.valoris.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -18,5 +19,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceAlreadyExistsException.class)
     public ResponseEntity<RespostaApiDTO> handleResourceAlreadyExistsException(ResourceAlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new RespostaApiDTO(HttpStatus.CONFLICT, ex.getMessage()));
+    }
+
+    @ExceptionHandler(OperacaoInvalidaException.class)
+    public ResponseEntity<RespostaApiDTO> handleOperacaoInvalidaException(OperacaoInvalidaException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new RespostaApiDTO(HttpStatus.BAD_REQUEST, ex.getMessage()));
     }
 }

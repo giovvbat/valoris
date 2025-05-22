@@ -1,6 +1,7 @@
 package br.ufrn.imd.valoris.controller;
 
 import br.ufrn.imd.valoris.dto.ContaDTO;
+import br.ufrn.imd.valoris.dto.RenderJurosDTO;
 import br.ufrn.imd.valoris.dto.TransacaoDTO;
 import br.ufrn.imd.valoris.dto.TransferenciaDTO;
 import br.ufrn.imd.valoris.model.ContaModel;
@@ -40,5 +41,10 @@ public class ContaController {
     @PutMapping("/{numero}/transferir")
     public ContaModel transferir(@PathVariable("numero") String numeroOrigem, @RequestBody @Valid TransferenciaDTO transferenciaDTO) {
         return contaService.transferir(numeroOrigem, transferenciaDTO);
+    }
+
+    @PutMapping("/{numero}/render-juros")
+    public ContaModel renderJuros(@PathVariable("numero") String numero, @RequestBody @Valid RenderJurosDTO renderJurosDTO) {
+        return contaService.renderJuros(numero, renderJurosDTO);
     }
 }
