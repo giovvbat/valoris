@@ -4,9 +4,14 @@ import br.ufrn.imd.valoris.dao.ContaDao;
 import br.ufrn.imd.valoris.dto.ContaDTO;
 import br.ufrn.imd.valoris.dto.TransacaoDTO;
 import br.ufrn.imd.valoris.dto.TransferenciaDTO;
+import br.ufrn.imd.valoris.enums.TipoConta;
 import br.ufrn.imd.valoris.exception.ResourceAlreadyExistsException;
 import br.ufrn.imd.valoris.exception.ResourceNotFoundException;
+import br.ufrn.imd.valoris.model.ContaBonusModel;
 import br.ufrn.imd.valoris.model.ContaModel;
+
+import java.math.BigDecimal;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,6 +25,15 @@ public class ContaService {
     public ContaModel cadastrarConta(ContaDTO contaDTO) {
         if (contaDao.findByNumero(contaDTO.numero()).isPresent()) {
             throw new ResourceAlreadyExistsException(String.format("Conta de número %s já existe.", contaDTO.numero()));
+        }
+
+        if (contaDTO.tipoConta() == TipoConta.BONUS) {
+            ContaBonusModel contaBonus = new ContaBonusModel();
+            contaBonus.setNumero(contaDTO.numero());
+            contaBonus.setSaldo(0.0);
+            contaBonus.setPontuation(10);
+
+            return contaDao.saveConta(contaBonus);
         }
 
         ContaModel conta = new ContaModel();
@@ -43,6 +57,7 @@ public class ContaService {
     public ContaModel creditarConta(String numero, TransacaoDTO transacaoDTO) {
         ContaModel conta = findByNumeroIfExists(numero);
         conta.creditar(transacaoDTO.valor());
+        incrementarPontuacao(conta, determinarPontosIncrementados(transacaoDTO.valor(), 100));
         return conta;
     }
 
@@ -51,10 +66,22 @@ public class ContaService {
         ContaModel contaDestino = findByNumeroIfExists(transferenciaDTO.numeroDestino());
         contaOrigem.debitar(transferenciaDTO.valor());
         contaDestino.creditar(transferenciaDTO.valor());
+        incrementarPontuacao(contaDestino, determinarPontosIncrementados(transferenciaDTO.valor(), 200));
+        
         return contaOrigem;
     }
 
     private ContaModel findByNumeroIfExists(String numero) {
         return contaDao.findByNumero(numero).orElseThrow(() -> new ResourceNotFoundException(String.format("Conta de número %s não encontrada.", numero)));
+    }
+
+    private Integer determinarPontosIncrementados(Double valor, Integer referencia) {
+        return BigDecimal.valueOf(valor).divideToIntegralValue(BigDecimal.valueOf(referencia)).intValue();
+    }
+
+    private void incrementarPontuacao(ContaModel conta, Integer pontosIncrementados) {
+        if (conta instanceof ContaBonusModel contaBonus) {
+            contaBonus.setPontuation(contaBonus.getPontuation() + pontosIncrementados);
+        }
     }
 }

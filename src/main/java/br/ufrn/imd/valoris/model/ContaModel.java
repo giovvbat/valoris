@@ -8,9 +8,9 @@ import lombok.Data;
 @Data
 public class ContaModel {
     @NotBlank
-    private String numero;
+    protected String numero;
     @NotNull
-    private Double saldo;
+    protected Double saldo;
 
     public void debitar(@NotNull @Positive Double valor) {
         this.saldo = this.saldo - valor;
