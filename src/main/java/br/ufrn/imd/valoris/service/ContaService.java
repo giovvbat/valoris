@@ -6,6 +6,7 @@ import br.ufrn.imd.valoris.dto.RenderJurosDTO;
 import br.ufrn.imd.valoris.dto.TransacaoDTO;
 import br.ufrn.imd.valoris.dto.TransferenciaDTO;
 import br.ufrn.imd.valoris.enums.TipoConta;
+import br.ufrn.imd.valoris.exception.NotEnoughAccountBalanceException;
 import br.ufrn.imd.valoris.exception.ResourceAlreadyExistsException;
 import br.ufrn.imd.valoris.exception.ResourceNotFoundException;
 import br.ufrn.imd.valoris.model.ContaBonusModel;
@@ -62,6 +63,7 @@ public class ContaService {
 
     public ContaModel debitarConta(String numero, TransacaoDTO transacaoDTO) {
         ContaModel conta = findByNumeroIfExists(numero);
+        verificarSaldoSuficiente(conta, transacaoDTO.valor());
         conta.debitar(transacaoDTO.valor());
         return conta;
     }
@@ -76,15 +78,22 @@ public class ContaService {
     public ContaModel transferir(String numeroOrigem, TransferenciaDTO transferenciaDTO) {
         ContaModel contaOrigem = findByNumeroIfExists(numeroOrigem);
         ContaModel contaDestino = findByNumeroIfExists(transferenciaDTO.numeroDestino());
+        verificarSaldoSuficiente(contaOrigem, transferenciaDTO.valor());
         contaOrigem.debitar(transferenciaDTO.valor());
         contaDestino.creditar(transferenciaDTO.valor());
         incrementarPontuacao(contaDestino, determinarPontosIncrementados(transferenciaDTO.valor(), 200));
-        
+
         return contaOrigem;
     }
 
     private ContaModel findByNumeroIfExists(String numero) {
         return contaDao.findByNumero(numero).orElseThrow(() -> new ResourceNotFoundException(String.format("Conta de número %s não encontrada.", numero)));
+    }
+
+    private void verificarSaldoSuficiente(ContaModel conta, Double valorRequerido) {
+        if (conta.getSaldo() < valorRequerido) {
+            throw new NotEnoughAccountBalanceException(String.format("Saldo da conta %s insuficiente.", conta.getNumero()));
+        }
     }
 
     private Integer determinarPontosIncrementados(Double valor, Integer referencia) {
