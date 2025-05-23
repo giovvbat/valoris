@@ -6,16 +6,16 @@ import br.ufrn.imd.valoris.dto.RenderJurosDTO;
 import br.ufrn.imd.valoris.dto.TransacaoDTO;
 import br.ufrn.imd.valoris.dto.TransferenciaDTO;
 import br.ufrn.imd.valoris.enums.TipoConta;
-import br.ufrn.imd.valoris.exception.OperacaoInvalidaException;
 import br.ufrn.imd.valoris.exception.ResourceAlreadyExistsException;
 import br.ufrn.imd.valoris.exception.ResourceNotFoundException;
 import br.ufrn.imd.valoris.model.ContaBonusModel;
 import br.ufrn.imd.valoris.model.ContaModel;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import br.ufrn.imd.valoris.model.ContaPoupancaModel;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -97,14 +97,16 @@ public class ContaService {
         }
     }
 
-    public ContaModel renderJuros(String numero, RenderJurosDTO renderJurosDTO) {
-        ContaModel conta = findByNumeroIfExists(numero);
+    public List<ContaModel> renderJuros(RenderJurosDTO renderJurosDTO) {
+        List<ContaModel> contas = contaDao.findAll();
+        List<ContaModel> contasAtualizadas = new ArrayList<>();
 
-        if(conta instanceof ContaPoupancaModel contaPoupanca) {
-            contaPoupanca.renderJuros(renderJurosDTO.taxa());
-            return contaPoupanca;
-        } else {
-            throw new OperacaoInvalidaException("Não é possível render juros. Conta não é do tipo poupança.");
+        for(ContaModel conta: contas) {
+            if (conta instanceof ContaPoupancaModel contaPoupanca) {
+                contaPoupanca.renderJuros(renderJurosDTO.taxa());
+                contasAtualizadas.add(conta);
+            }
         }
+        return contasAtualizadas;
     }
 }

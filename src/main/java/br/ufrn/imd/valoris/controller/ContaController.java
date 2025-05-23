@@ -9,6 +9,8 @@ import br.ufrn.imd.valoris.service.ContaService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/contas")
 public class ContaController {
@@ -43,8 +45,8 @@ public class ContaController {
         return contaService.transferir(numeroOrigem, transferenciaDTO);
     }
 
-    @PutMapping("/{numero}/render-juros")
-    public ContaModel renderJuros(@PathVariable("numero") String numero, @RequestBody @Valid RenderJurosDTO renderJurosDTO) {
-        return contaService.renderJuros(numero, renderJurosDTO);
+    @PutMapping("/render-juros")
+    public List<ContaModel> renderJuros(@RequestBody @Valid RenderJurosDTO renderJurosDTO) {
+        return contaService.renderJuros(renderJurosDTO);
     }
 }
