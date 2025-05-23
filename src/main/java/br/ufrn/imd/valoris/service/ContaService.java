@@ -6,7 +6,6 @@ import br.ufrn.imd.valoris.dto.RenderJurosDTO;
 import br.ufrn.imd.valoris.dto.TransacaoDTO;
 import br.ufrn.imd.valoris.dto.TransferenciaDTO;
 import br.ufrn.imd.valoris.enums.TipoConta;
-import br.ufrn.imd.valoris.exception.OperacaoInvalidaException;
 import br.ufrn.imd.valoris.exception.ResourceAlreadyExistsException;
 import br.ufrn.imd.valoris.exception.ResourceNotFoundException;
 import br.ufrn.imd.valoris.model.ContaBonusModel;
@@ -17,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.ufrn.imd.valoris.model.ContaPoupancaModel;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 @Service
