@@ -1,12 +1,15 @@
 package br.ufrn.imd.valoris.controller;
 
 import br.ufrn.imd.valoris.dto.ContaDTO;
+import br.ufrn.imd.valoris.dto.RenderJurosDTO;
 import br.ufrn.imd.valoris.dto.TransacaoDTO;
 import br.ufrn.imd.valoris.dto.TransferenciaDTO;
 import br.ufrn.imd.valoris.model.ContaModel;
 import br.ufrn.imd.valoris.service.ContaService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/contas")
@@ -40,5 +43,10 @@ public class ContaController {
     @PutMapping("/{numero}/transferir")
     public ContaModel transferir(@PathVariable("numero") String numeroOrigem, @RequestBody @Valid TransferenciaDTO transferenciaDTO) {
         return contaService.transferir(numeroOrigem, transferenciaDTO);
+    }
+
+    @PutMapping("/render-juros")
+    public List<ContaModel> renderJuros(@RequestBody @Valid RenderJurosDTO renderJurosDTO) {
+        return contaService.renderJuros(renderJurosDTO);
     }
 }
