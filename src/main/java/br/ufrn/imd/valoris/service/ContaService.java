@@ -86,7 +86,7 @@ public class ContaService {
         verificarSaldoSuficiente(contaOrigem, transferenciaDTO.valor());
         contaOrigem.debitar(transferenciaDTO.valor());
         contaDestino.creditar(transferenciaDTO.valor());
-        incrementarPontuacao(contaDestino, determinarPontosIncrementados(transferenciaDTO.valor(), 200));
+        incrementarPontuacao(contaDestino, determinarPontosIncrementados(transferenciaDTO.valor(), 150));
 
         return contaOrigem;
     }
