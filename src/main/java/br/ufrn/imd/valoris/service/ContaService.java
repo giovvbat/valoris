@@ -25,7 +25,7 @@ public class ContaService {
 
         ContaModel conta = new ContaModel();
         conta.setNumero(contaDTO.numero());
-        conta.setSaldo(0.0);
+        conta.setSaldo(contaDTO.saldoInicial());
 
         return contaDao.saveConta(conta);
     }
