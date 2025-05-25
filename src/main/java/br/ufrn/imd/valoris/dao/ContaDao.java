@@ -3,9 +3,7 @@ package br.ufrn.imd.valoris.dao;
 import br.ufrn.imd.valoris.model.ContaModel;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 public class ContaDao {
@@ -22,5 +20,9 @@ public class ContaDao {
         }
 
         return Optional.empty();
+    }
+
+    public List<ContaModel> findAll() {
+        return new ArrayList<>(contas.values());
     }
 }
