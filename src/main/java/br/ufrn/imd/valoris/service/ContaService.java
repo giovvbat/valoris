@@ -79,8 +79,17 @@ public class ContaService {
     }
 
     private void verificarSaldoSuficiente(ContaModel conta, Double valorRequerido) {
-        if (conta.getSaldo() < valorRequerido) {
-            throw new NotEnoughAccountBalanceException(String.format("Saldo da conta %s insuficiente.", conta.getNumero()));
+        Double novoSaldo = conta.getSaldo() - valorRequerido;
+        Double limite = (conta instanceof ContaPoupancaModel) ? 0.0 : -1000.0;
+
+        if (novoSaldo < limite) {
+            throw new NotEnoughAccountBalanceException(
+                    String.format(
+                            "Saldo da conta %s insuficiente. O limite mínimo permitido do saldo é de R$ %.2f.",
+                            conta.getNumero(),
+                            limite
+                    )
+            );
         }
     }
 
