@@ -6,6 +6,7 @@ import br.ufrn.imd.valoris.dto.RenderJurosDTO;
 import br.ufrn.imd.valoris.dto.TransacaoDTO;
 import br.ufrn.imd.valoris.dto.TransferenciaDTO;
 import br.ufrn.imd.valoris.enums.TipoConta;
+import br.ufrn.imd.valoris.exception.InitialBalanceMissingException;
 import br.ufrn.imd.valoris.exception.NotEnoughAccountBalanceException;
 import br.ufrn.imd.valoris.exception.ResourceAlreadyExistsException;
 import br.ufrn.imd.valoris.exception.ResourceNotFoundException;
@@ -42,9 +43,13 @@ public class ContaService {
         }
 
         if (contaDTO.tipoConta() == TipoConta.POUPANCA) {
+            if (contaDTO.saldoInicial() == null) {
+                throw new InitialBalanceMissingException("Saldo inicial obrigatório para contas do tipo poupança.");
+            }
+
             ContaPoupancaModel contaPoupanca = new ContaPoupancaModel();
             contaPoupanca.setNumero(contaDTO.numero());
-            contaPoupanca.setSaldo(0.0);
+            contaPoupanca.setSaldo(contaDTO.saldoInicial());
 
             return contaDao.saveConta(contaPoupanca);
         }
