@@ -34,31 +34,14 @@ public class ContaService {
         }
 
         if (contaDTO.tipoConta() == TipoConta.BONUS) {
-            ContaBonusModel contaBonus = new ContaBonusModel();
-            contaBonus.setNumero(contaDTO.numero());
-            contaBonus.setSaldo(0.0);
-            contaBonus.setPontuation(10);
-
-            return contaDao.saveConta(contaBonus);
+            return contaDao.saveConta(setarContaBonus(contaDTO));
         }
 
         if (contaDTO.tipoConta() == TipoConta.POUPANCA) {
-            if (contaDTO.saldoInicial() == null) {
-                throw new InitialBalanceMissingException("Saldo inicial obrigatório para contas do tipo poupança.");
-            }
-
-            ContaPoupancaModel contaPoupanca = new ContaPoupancaModel();
-            contaPoupanca.setNumero(contaDTO.numero());
-            contaPoupanca.setSaldo(contaDTO.saldoInicial());
-
-            return contaDao.saveConta(contaPoupanca);
+            return contaDao.saveConta(setarContaPoupanca(contaDTO));
         }
 
-        ContaModel conta = new ContaModel();
-        conta.setNumero(contaDTO.numero());
-        conta.setSaldo(0.0);
-
-        return contaDao.saveConta(conta);
+        return contaDao.saveConta(setarContaPadrao(contaDTO));
     }
 
     public Double consultarSaldo(String numero) {
@@ -122,5 +105,34 @@ public class ContaService {
             }
         }
         return contasAtualizadas;
+    }
+
+    private ContaModel setarContaBonus(ContaDTO contaDTO) {
+        ContaBonusModel contaBonus = new ContaBonusModel();
+        contaBonus.setNumero(contaDTO.numero());
+        contaBonus.setSaldo(0.0);
+        contaBonus.setPontuation(10);
+
+        return contaBonus;
+    }
+
+    private ContaModel setarContaPoupanca(ContaDTO contaDTO) {
+        if (contaDTO.saldoInicial() == null) {
+            throw new InitialBalanceMissingException("Saldo inicial obrigatório para contas do tipo poupança.");
+        }
+
+        ContaPoupancaModel contaPoupanca = new ContaPoupancaModel();
+        contaPoupanca.setNumero(contaDTO.numero());
+        contaPoupanca.setSaldo(contaDTO.saldoInicial());
+
+        return contaPoupanca;
+    }
+
+    private ContaModel setarContaPadrao(ContaDTO contaDTO) {
+        ContaModel contaPadrao = new ContaModel();
+        contaPadrao.setNumero(contaDTO.numero());
+        contaPadrao.setSaldo(0.0);
+
+        return contaPadrao;
     }
 }
