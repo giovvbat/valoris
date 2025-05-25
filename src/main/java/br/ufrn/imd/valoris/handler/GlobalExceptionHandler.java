@@ -1,6 +1,7 @@
 package br.ufrn.imd.valoris.handler;
 
 import br.ufrn.imd.valoris.dto.RespostaApiDTO;
+import br.ufrn.imd.valoris.exception.InitialBalanceMissingException;
 import br.ufrn.imd.valoris.exception.NotEnoughAccountBalanceException;
 import br.ufrn.imd.valoris.exception.ResourceAlreadyExistsException;
 import br.ufrn.imd.valoris.exception.ResourceNotFoundException;
@@ -28,6 +29,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotEnoughAccountBalanceException.class)
     public ResponseEntity<RespostaApiDTO> handleNotEnoughAccountBalanceException(NotEnoughAccountBalanceException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new RespostaApiDTO(HttpStatus.BAD_REQUEST, ex.getMessage()));
+    }
+
+    @ExceptionHandler(InitialBalanceMissingException.class)
+    public ResponseEntity<RespostaApiDTO> handleInitialBalanceMissingException(InitialBalanceMissingException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new RespostaApiDTO(HttpStatus.BAD_REQUEST, ex.getMessage()));
     }
 
