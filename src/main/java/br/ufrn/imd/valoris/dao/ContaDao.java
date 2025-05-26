@@ -25,5 +25,4 @@ public class ContaDao {
     public List<ContaModel> findAll() {
         return new ArrayList<>(contas.values());
     }
-
 }

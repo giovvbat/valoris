@@ -69,7 +69,7 @@ public class ContaService {
         verificarSaldoSuficiente(contaOrigem, transferenciaDTO.valor());
         contaOrigem.debitar(transferenciaDTO.valor());
         contaDestino.creditar(transferenciaDTO.valor());
-        incrementarPontuacao(contaDestino, determinarPontosIncrementados(transferenciaDTO.valor(), 200));
+        incrementarPontuacao(contaDestino, determinarPontosIncrementados(transferenciaDTO.valor(), 150));
 
         return contaOrigem;
     }
@@ -138,9 +138,13 @@ public class ContaService {
     }
 
     private ContaModel setarContaPadrao(ContaDTO contaDTO) {
+        if (contaDTO.saldoInicial() == null) {
+            throw new InitialBalanceMissingException("Saldo inicial obrigatório para contas do tipo padrão.");
+        }
+
         ContaModel contaPadrao = new ContaModel();
         contaPadrao.setNumero(contaDTO.numero());
-        contaPadrao.setSaldo(0.0);
+        contaPadrao.setSaldo(contaDTO.saldoInicial());
 
         return contaPadrao;
     }
