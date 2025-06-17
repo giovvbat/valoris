@@ -104,7 +104,7 @@ public class ContaService {
     public List<ContaModel> findAll() {
         return Optional.of(contaDao.findAll())
                 .filter(list -> !list.isEmpty())
-                .orElseThrow(() -> new ResourceNotFoundException("Nenhuma conta cadastrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Nenhuma conta cadastrada."));
     }
 
     public List<ContaModel> renderJuros(RenderJurosDTO renderJurosDTO) {
