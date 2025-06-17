@@ -1,9 +1,6 @@
 package br.ufrn.imd.valoris.controller;
 
-import br.ufrn.imd.valoris.dto.ContaDTO;
-import br.ufrn.imd.valoris.dto.RenderJurosDTO;
-import br.ufrn.imd.valoris.dto.TransacaoDTO;
-import br.ufrn.imd.valoris.dto.TransferenciaDTO;
+import br.ufrn.imd.valoris.dto.*;
 import br.ufrn.imd.valoris.model.ContaModel;
 import br.ufrn.imd.valoris.service.ContaService;
 import jakarta.validation.Valid;
@@ -12,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/contas")
+@RequestMapping("/banco/conta")
 public class ContaController {
     private final ContaService contaService;
 
@@ -25,27 +22,27 @@ public class ContaController {
         return contaService.cadastrarConta(contaDTO);
     }
 
-    @GetMapping("/{numero}/saldo")
-    public Double consultarSaldo(@PathVariable String numero) {
-        return contaService.consultarSaldo(numero);
+    @GetMapping("/{id}/saldo")
+    public SaldoDTO consultarSaldo(@PathVariable String id) {
+        return contaService.consultarSaldo(id);
     }
 
-    @PutMapping("/{numero}/debitar")
-    public ContaModel debitarConta(@PathVariable String numero, @RequestBody @Valid TransacaoDTO transacaoDTO) {
-        return contaService.debitarConta(numero, transacaoDTO);
+    @PutMapping("/{id}/debito")
+    public ContaModel debitarConta(@PathVariable String id, @RequestBody @Valid TransacaoDTO transacaoDTO) {
+        return contaService.debitarConta(id, transacaoDTO);
     }
 
-    @PutMapping("/{numero}/creditar")
-    public ContaModel creditarConta(@PathVariable String numero, @RequestBody @Valid TransacaoDTO transacaoDTO) {
-        return contaService.creditarConta(numero, transacaoDTO);
+    @PutMapping("/{id}/credito")
+    public ContaModel creditarConta(@PathVariable String id, @RequestBody @Valid TransacaoDTO transacaoDTO) {
+        return contaService.creditarConta(id, transacaoDTO);
     }
 
-    @PutMapping("/{numero}/transferir")
-    public ContaModel transferir(@PathVariable("numero") String numeroOrigem, @RequestBody @Valid TransferenciaDTO transferenciaDTO) {
-        return contaService.transferir(numeroOrigem, transferenciaDTO);
+    @PutMapping("/transferencia")
+    public List<ContaModel> transferir(@RequestBody @Valid TransferenciaDTO transferenciaDTO) {
+        return contaService.transferir(transferenciaDTO);
     }
 
-    @PutMapping("/render-juros")
+    @PutMapping("/rendimento")
     public List<ContaModel> renderJuros(@RequestBody @Valid RenderJurosDTO renderJurosDTO) {
         return contaService.renderJuros(renderJurosDTO);
     }
