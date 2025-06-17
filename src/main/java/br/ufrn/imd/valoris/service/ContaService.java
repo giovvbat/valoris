@@ -13,6 +13,7 @@ import br.ufrn.imd.valoris.model.ContaModel;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import br.ufrn.imd.valoris.model.ContaPoupancaModel;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class ContaService {
 
     public SaldoDTO consultarSaldo(String numero) {
         ContaModel conta = findByNumeroIfExists(numero);
-        return new SaldoDTO(conta.getNumero(), conta.getSaldo());
+        return new SaldoDTO(conta.getNumber(), conta.getBalance());
     }
 
     public ContaModel debitarConta(String numero, TransacaoDTO transacaoDTO) {
@@ -71,19 +72,19 @@ public class ContaService {
         return List.of(contaOrigem, contaDestino);
     }
 
-    private ContaModel findByNumeroIfExists(String numero) {
+    public ContaModel findByNumeroIfExists(String numero) {
         return contaDao.findByNumero(numero).orElseThrow(() -> new ResourceNotFoundException(String.format("Conta de número %s não encontrada.", numero)));
     }
 
     private void verificarSaldoSuficiente(ContaModel conta, Double valorRequerido) {
-        Double novoSaldo = conta.getSaldo() - valorRequerido;
+        Double novoSaldo = conta.getBalance() - valorRequerido;
         Double limite = (conta instanceof ContaPoupancaModel) ? 0.0 : -1000.0;
 
         if (novoSaldo < limite) {
             throw new NotEnoughAccountBalanceException(
                     String.format(
                             "Saldo da conta %s insuficiente. O limite mínimo permitido do saldo é de R$ %.2f.",
-                            conta.getNumero(),
+                            conta.getNumber(),
                             limite
                     )
             );
@@ -98,6 +99,12 @@ public class ContaService {
         if (conta instanceof ContaBonusModel contaBonus) {
             contaBonus.setPontuation(contaBonus.getPontuation() + pontosIncrementados);
         }
+    }
+
+    public List<ContaModel> findAll() {
+        return Optional.of(contaDao.findAll())
+                .filter(list -> !list.isEmpty())
+                .orElseThrow(() -> new ResourceNotFoundException("Nenhuma conta cadastrada"));
     }
 
     public List<ContaModel> renderJuros(RenderJurosDTO renderJurosDTO) {
@@ -116,8 +123,8 @@ public class ContaService {
 
     private ContaModel setarContaBonus(ContaDTO contaDTO) {
         ContaBonusModel contaBonus = new ContaBonusModel();
-        contaBonus.setNumero(contaDTO.number());
-        contaBonus.setSaldo(0.0);
+        setarAtributosDeContaComuns(contaDTO, contaBonus);
+        contaBonus.setBalance(0.0);
         contaBonus.setPontuation(10);
 
         return contaBonus;
@@ -129,8 +136,8 @@ public class ContaService {
         }
 
         ContaPoupancaModel contaPoupanca = new ContaPoupancaModel();
-        contaPoupanca.setNumero(contaDTO.number());
-        contaPoupanca.setSaldo(contaDTO.balance());
+        setarAtributosDeContaComuns(contaDTO, contaPoupanca);
+        contaPoupanca.setBalance(contaDTO.balance());
 
         return contaPoupanca;
     }
@@ -141,9 +148,14 @@ public class ContaService {
         }
 
         ContaModel contaPadrao = new ContaModel();
-        contaPadrao.setNumero(contaDTO.number());
-        contaPadrao.setSaldo(contaDTO.balance());
+        setarAtributosDeContaComuns(contaDTO, contaPadrao);
+        contaPadrao.setBalance(contaDTO.balance());
 
         return contaPadrao;
+    }
+
+    private void setarAtributosDeContaComuns(ContaDTO contaDTO, ContaModel contaModel) {
+        contaModel.setNumber(contaDTO.number());
+        contaModel.setType(contaDTO.type());
     }
 }

@@ -22,9 +22,19 @@ public class ContaController {
         return contaService.cadastrarConta(contaDTO);
     }
 
+    @GetMapping("/{id}")
+    public ContaModel consultarConta(@PathVariable String id) {
+        return contaService.findByNumeroIfExists(id);
+    }
+
     @GetMapping("/{id}/saldo")
     public SaldoDTO consultarSaldo(@PathVariable String id) {
         return contaService.consultarSaldo(id);
+    }
+
+    @GetMapping
+    public List<ContaModel> listarContas() {
+        return contaService.findAll();
     }
 
     @PutMapping("/{id}/debito")
