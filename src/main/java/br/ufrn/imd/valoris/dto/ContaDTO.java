@@ -5,5 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
-public record ContaDTO(@NotBlank String numero, @NotNull TipoConta tipoConta, @PositiveOrZero Double saldoInicial) {
+public record ContaDTO(@NotBlank String number, @NotNull TipoConta type, @PositiveOrZero Double balance) {
 }
+

@@ -1,10 +1,7 @@
 package br.ufrn.imd.valoris.service;
 
 import br.ufrn.imd.valoris.dao.ContaDao;
-import br.ufrn.imd.valoris.dto.ContaDTO;
-import br.ufrn.imd.valoris.dto.RenderJurosDTO;
-import br.ufrn.imd.valoris.dto.TransacaoDTO;
-import br.ufrn.imd.valoris.dto.TransferenciaDTO;
+import br.ufrn.imd.valoris.dto.*;
 import br.ufrn.imd.valoris.enums.TipoConta;
 import br.ufrn.imd.valoris.exception.InitialBalanceMissingException;
 import br.ufrn.imd.valoris.exception.NotEnoughAccountBalanceException;
@@ -29,49 +26,49 @@ public class ContaService {
     }
 
     public ContaModel cadastrarConta(ContaDTO contaDTO) {
-        if (contaDao.findByNumero(contaDTO.numero()).isPresent()) {
-            throw new ResourceAlreadyExistsException(String.format("Conta de número %s já existe.", contaDTO.numero()));
+        if (contaDao.findByNumero(contaDTO.number()).isPresent()) {
+            throw new ResourceAlreadyExistsException(String.format("Conta de número %s já existe.", contaDTO.number()));
         }
 
-        if (contaDTO.tipoConta() == TipoConta.BONUS) {
+        if (contaDTO.type() == TipoConta.BONUS) {
             return contaDao.saveConta(setarContaBonus(contaDTO));
         }
 
-        if (contaDTO.tipoConta() == TipoConta.POUPANCA) {
+        if (contaDTO.type() == TipoConta.POUPANCA) {
             return contaDao.saveConta(setarContaPoupanca(contaDTO));
         }
 
         return contaDao.saveConta(setarContaPadrao(contaDTO));
     }
 
-    public Double consultarSaldo(String numero) {
+    public SaldoDTO consultarSaldo(String numero) {
         ContaModel conta = findByNumeroIfExists(numero);
-        return conta.getSaldo();
+        return new SaldoDTO(conta.getNumero(), conta.getSaldo());
     }
 
     public ContaModel debitarConta(String numero, TransacaoDTO transacaoDTO) {
         ContaModel conta = findByNumeroIfExists(numero);
-        verificarSaldoSuficiente(conta, transacaoDTO.valor());
-        conta.debitar(transacaoDTO.valor());
+        verificarSaldoSuficiente(conta, transacaoDTO.amount());
+        conta.debitar(transacaoDTO.amount());
         return conta;
     }
 
     public ContaModel creditarConta(String numero, TransacaoDTO transacaoDTO) {
         ContaModel conta = findByNumeroIfExists(numero);
-        conta.creditar(transacaoDTO.valor());
-        incrementarPontuacao(conta, determinarPontosIncrementados(transacaoDTO.valor(), 100));
+        conta.creditar(transacaoDTO.amount());
+        incrementarPontuacao(conta, determinarPontosIncrementados(transacaoDTO.amount(), 100));
         return conta;
     }
 
-    public ContaModel transferir(String numeroOrigem, TransferenciaDTO transferenciaDTO) {
-        ContaModel contaOrigem = findByNumeroIfExists(numeroOrigem);
-        ContaModel contaDestino = findByNumeroIfExists(transferenciaDTO.numeroDestino());
-        verificarSaldoSuficiente(contaOrigem, transferenciaDTO.valor());
-        contaOrigem.debitar(transferenciaDTO.valor());
-        contaDestino.creditar(transferenciaDTO.valor());
-        incrementarPontuacao(contaDestino, determinarPontosIncrementados(transferenciaDTO.valor(), 150));
+    public List<ContaModel> transferir(TransferenciaDTO transferenciaDTO) {
+        ContaModel contaOrigem = findByNumeroIfExists(transferenciaDTO.from());
+        ContaModel contaDestino = findByNumeroIfExists(transferenciaDTO.to());
+        verificarSaldoSuficiente(contaOrigem, transferenciaDTO.amount());
+        contaOrigem.debitar(transferenciaDTO.amount());
+        contaDestino.creditar(transferenciaDTO.amount());
+        incrementarPontuacao(contaDestino, determinarPontosIncrementados(transferenciaDTO.amount(), 150));
 
-        return contaOrigem;
+        return List.of(contaOrigem, contaDestino);
     }
 
     private ContaModel findByNumeroIfExists(String numero) {
@@ -109,16 +106,17 @@ public class ContaService {
 
         for(ContaModel conta: contas) {
             if (conta instanceof ContaPoupancaModel contaPoupanca) {
-                contaPoupanca.renderJuros(renderJurosDTO.taxa());
+                contaPoupanca.renderJuros(renderJurosDTO.tax());
                 contasAtualizadas.add(conta);
             }
         }
+
         return contasAtualizadas;
     }
 
     private ContaModel setarContaBonus(ContaDTO contaDTO) {
         ContaBonusModel contaBonus = new ContaBonusModel();
-        contaBonus.setNumero(contaDTO.numero());
+        contaBonus.setNumero(contaDTO.number());
         contaBonus.setSaldo(0.0);
         contaBonus.setPontuation(10);
 
@@ -126,25 +124,25 @@ public class ContaService {
     }
 
     private ContaModel setarContaPoupanca(ContaDTO contaDTO) {
-        if (contaDTO.saldoInicial() == null) {
+        if (contaDTO.balance() == null) {
             throw new InitialBalanceMissingException("Saldo inicial obrigatório para contas do tipo poupança.");
         }
 
         ContaPoupancaModel contaPoupanca = new ContaPoupancaModel();
-        contaPoupanca.setNumero(contaDTO.numero());
-        contaPoupanca.setSaldo(contaDTO.saldoInicial());
+        contaPoupanca.setNumero(contaDTO.number());
+        contaPoupanca.setSaldo(contaDTO.balance());
 
         return contaPoupanca;
     }
 
     private ContaModel setarContaPadrao(ContaDTO contaDTO) {
-        if (contaDTO.saldoInicial() == null) {
+        if (contaDTO.balance() == null) {
             throw new InitialBalanceMissingException("Saldo inicial obrigatório para contas do tipo padrão.");
         }
 
         ContaModel contaPadrao = new ContaModel();
-        contaPadrao.setNumero(contaDTO.numero());
-        contaPadrao.setSaldo(contaDTO.saldoInicial());
+        contaPadrao.setNumero(contaDTO.number());
+        contaPadrao.setSaldo(contaDTO.balance());
 
         return contaPadrao;
     }
