@@ -4,10 +4,9 @@ import br.ufrn.imd.valoris.dao.ContaDao;
 import br.ufrn.imd.valoris.dto.ContaDTO;
 import br.ufrn.imd.valoris.dto.RenderJurosDTO;
 import br.ufrn.imd.valoris.dto.SaldoDTO;
+import br.ufrn.imd.valoris.dto.TransacaoDTO;
 import br.ufrn.imd.valoris.enums.TipoConta;
-import br.ufrn.imd.valoris.exception.InitialBalanceMissingException;
-import br.ufrn.imd.valoris.exception.ResourceAlreadyExistsException;
-import br.ufrn.imd.valoris.exception.ResourceNotFoundException;
+import br.ufrn.imd.valoris.exception.*;
 import br.ufrn.imd.valoris.model.ContaBonusModel;
 import br.ufrn.imd.valoris.model.ContaModel;
 import br.ufrn.imd.valoris.model.ContaPoupancaModel;
@@ -253,6 +252,93 @@ public class ContaServiceTest {
         });
 
         assertEquals("Conta de número 123 não encontrada.", ex.getMessage());
+        verify(contaDao, times(1)).findByNumero(numberConta);
+    }
+
+    @Test
+    void debitarCasoNormal() {
+        String numberConta = "123";
+        Double initialBalance = 1000.0;
+        Double amountToDebit = 200.0;
+        ContaModel mockedConta = new ContaModel(numberConta, initialBalance, TipoConta.PADRAO);
+
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
+        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ContaModel result = contaService.debitarConta(numberConta, new TransacaoDTO(amountToDebit));
+
+        assertEquals(numberConta, result.getNumber());
+        assertEquals(initialBalance - amountToDebit, result.getBalance());
+
+        verify(contaDao, times(1)).findByNumero(numberConta);
+    }
+
+    @Test
+    void debitarCasoNegativo() {
+        String numberConta = "123";
+        Double initialBalance = 1000.0;
+        Double amountToDebit = -200.0;
+        ContaModel mockedConta = new ContaModel(numberConta, initialBalance, TipoConta.PADRAO);
+
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
+        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        InvalidAmountException ex = assertThrows(InvalidAmountException.class, () -> {
+            contaService.debitarConta(numberConta, new TransacaoDTO(amountToDebit));
+        });
+
+        assertEquals("Transações com valores negativos não são permitidas.", ex.getMessage());
+        verify(contaDao, times(1)).findByNumero(numberConta);
+    }
+
+    @Test
+    void debitarContaPadraoComSaldoInsuficiente() {
+        String numberConta = "123";
+        Double initialBalance = 100.0;
+        Double amountToDebit = 1200.0;
+        ContaModel mockedConta = new ContaModel(numberConta, initialBalance, TipoConta.PADRAO);
+
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
+
+        NotEnoughAccountBalanceException ex = assertThrows(NotEnoughAccountBalanceException.class, () -> {
+            contaService.debitarConta(numberConta, new TransacaoDTO(amountToDebit));
+        });
+
+        assertEquals("Saldo da conta 123 insuficiente. O limite mínimo permitido do saldo é de R$ -1000,00.", ex.getMessage());
+        verify(contaDao, times(1)).findByNumero(numberConta);
+    }
+
+    @Test
+    void debitarContaBonusComSaldoInsuficiente() {
+        String numberConta = "123";
+        Double initialBalance = 100.0;
+        Double amountToDebit = 1200.0;
+        ContaBonusModel mockedConta = new ContaBonusModel(numberConta, initialBalance, TipoConta.BONUS, 10);
+
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
+
+        NotEnoughAccountBalanceException ex = assertThrows(NotEnoughAccountBalanceException.class, () -> {
+            contaService.debitarConta(numberConta, new TransacaoDTO(amountToDebit));
+        });
+
+        assertEquals("Saldo da conta 123 insuficiente. O limite mínimo permitido do saldo é de R$ -1000,00.", ex.getMessage());
+        verify(contaDao, times(1)).findByNumero(numberConta);
+    }
+
+    @Test
+    void debitarContaPoupancaComSaldoInsuficiente() {
+        String numberConta = "123";
+        Double initialBalance = 100.0;
+        Double amountToDebit = 200.0;
+        ContaPoupancaModel mockedConta = new ContaPoupancaModel(numberConta, initialBalance, TipoConta.POUPANCA);
+
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
+
+        NotEnoughAccountBalanceException ex = assertThrows(NotEnoughAccountBalanceException.class, () -> {
+            contaService.debitarConta(numberConta, new TransacaoDTO(amountToDebit));
+        });
+
+        assertEquals("Saldo da conta 123 insuficiente. O limite mínimo permitido do saldo é de R$ 0,00.", ex.getMessage());
         verify(contaDao, times(1)).findByNumero(numberConta);
     }
 
