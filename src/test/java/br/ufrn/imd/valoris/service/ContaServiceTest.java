@@ -2,6 +2,7 @@ package br.ufrn.imd.valoris.service;
 
 import br.ufrn.imd.valoris.dao.ContaDao;
 import br.ufrn.imd.valoris.dto.ContaDTO;
+import br.ufrn.imd.valoris.dto.RenderJurosDTO;
 import br.ufrn.imd.valoris.dto.SaldoDTO;
 import br.ufrn.imd.valoris.enums.TipoConta;
 import br.ufrn.imd.valoris.exception.InitialBalanceMissingException;
@@ -16,6 +17,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -250,5 +254,49 @@ public class ContaServiceTest {
 
         assertEquals("Conta de número 123 não encontrada.", ex.getMessage());
         verify(contaDao, times(1)).findByNumero(numberConta);
+    }
+
+    @Test
+    void renderJurosQuandoContaPoupancaExiste() {
+        String[] numberContas = {"1", "2", "3", "4"};
+        Double[] initialBalances = {1000.0, 2000.0, 3000.0, 4000.0};
+        ContaPoupancaModel mockedContaPoupanca1 = new ContaPoupancaModel(numberContas[0], initialBalances[0], TipoConta.POUPANCA);
+        ContaPoupancaModel mockedContaPoupanca2 = new ContaPoupancaModel(numberContas[1], initialBalances[1], TipoConta.POUPANCA);
+        ContaModel mockedContaPadrao = new ContaModel(numberContas[2], initialBalances[2], TipoConta.PADRAO);
+        ContaModel mockedContaBonus = new ContaBonusModel(numberContas[3], initialBalances[3], TipoConta.BONUS, 10);
+
+        when(contaDao.findAll()).thenReturn(Arrays.asList(mockedContaPoupanca1, mockedContaPoupanca2, mockedContaPadrao, mockedContaBonus));
+
+        RenderJurosDTO jurosDTO = new RenderJurosDTO(50.0);
+        Double juros = jurosDTO.tax();
+        List<ContaModel> result = contaService.renderJuros(jurosDTO);
+
+        assertEquals(2, result.size());
+        ContaModel conta1 = result.get(0);
+        ContaModel conta2 = result.get(1);
+
+        assertInstanceOf(ContaPoupancaModel.class, conta1);
+        assertInstanceOf(ContaPoupancaModel.class, conta2);
+        assertEquals(initialBalances[0] + (juros / 100) * initialBalances[0], conta1.getBalance());
+        assertEquals(initialBalances[1] + (juros / 100) * initialBalances[1], conta2.getBalance());
+
+        assertEquals(initialBalances[2], mockedContaPadrao.getBalance());
+        assertEquals(initialBalances[3], mockedContaBonus.getBalance());
+
+        verify(contaDao, times(1)).findAll();
+    }
+
+    @Test
+    void renderJurosQuandoContaPoupancaNaoExiste() {
+        RenderJurosDTO jurosDTO = new RenderJurosDTO(50.0);
+
+        when(contaDao.findAll()).thenReturn(new ArrayList<>());
+
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> {
+            contaService.renderJuros(jurosDTO);
+        });
+
+        assertEquals("Nenhuma conta de tipo poupança cadastrada.", ex.getMessage());
+        verify(contaDao, times(1)).findAll();
     }
 }
