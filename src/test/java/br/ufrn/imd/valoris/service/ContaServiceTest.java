@@ -1,10 +1,7 @@
 package br.ufrn.imd.valoris.service;
 
 import br.ufrn.imd.valoris.dao.ContaDao;
-import br.ufrn.imd.valoris.dto.ContaDTO;
-import br.ufrn.imd.valoris.dto.RenderJurosDTO;
-import br.ufrn.imd.valoris.dto.SaldoDTO;
-import br.ufrn.imd.valoris.dto.TransacaoDTO;
+import br.ufrn.imd.valoris.dto.*;
 import br.ufrn.imd.valoris.enums.TipoConta;
 import br.ufrn.imd.valoris.exception.*;
 import br.ufrn.imd.valoris.model.ContaBonusModel;
@@ -340,6 +337,162 @@ public class ContaServiceTest {
 
         assertEquals("Saldo da conta 123 insuficiente. O limite mínimo permitido do saldo é de R$ 0,00.", ex.getMessage());
         verify(contaDao, times(1)).findByNumero(numberConta);
+    }
+
+    @Test
+    void transferirCasoNormal() {
+        String numberContaOrigem = "123";
+        String numberContaDestino = "456";
+        Double initialBalanceOrigem = 1000.0;
+        Double initialBalanceDestino = 500.0;
+        Double amountToTransfer = 200.0;
+
+        ContaModel mockedContaOrigem = new ContaModel(numberContaOrigem, initialBalanceOrigem, TipoConta.PADRAO);
+        ContaModel mockedContaDestino = new ContaModel(numberContaDestino, initialBalanceDestino, TipoConta.PADRAO);
+
+        when(contaDao.findByNumero(numberContaOrigem)).thenReturn(Optional.of(mockedContaOrigem));
+        when(contaDao.findByNumero(numberContaDestino)).thenReturn(Optional.of(mockedContaDestino));
+        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        List<ContaModel> result = contaService.transferir(new TransferenciaDTO(numberContaOrigem, numberContaDestino, amountToTransfer));
+
+        assertEquals(2, result.size());
+        assertEquals(numberContaOrigem, result.get(0).getNumber());
+        assertEquals(initialBalanceOrigem - amountToTransfer, result.get(0).getBalance());
+        assertEquals(numberContaDestino, result.get(1).getNumber());
+        assertEquals(initialBalanceDestino + amountToTransfer, result.get(1).getBalance());
+
+        verify(contaDao, times(1)).findByNumero(numberContaOrigem);
+        verify(contaDao, times(1)).findByNumero(numberContaDestino);
+    }
+
+    @Test
+    void transferirCasoNegativo() {
+        String numberContaOrigem = "123";
+        String numberContaDestino = "456";
+        Double initialBalanceOrigem = 1000.0;
+        Double initialBalanceDestino = 500.0;
+        Double amountToTransfer = -200.0;
+
+        ContaModel mockedContaOrigem = new ContaModel(numberContaOrigem, initialBalanceOrigem, TipoConta.PADRAO);
+        ContaModel mockedContaDestino = new ContaModel(numberContaDestino, initialBalanceDestino, TipoConta.PADRAO);
+
+        when(contaDao.findByNumero(numberContaOrigem)).thenReturn(Optional.of(mockedContaOrigem));
+        when(contaDao.findByNumero(numberContaDestino)).thenReturn(Optional.of(mockedContaDestino));
+        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        InvalidAmountException ex = assertThrows(InvalidAmountException.class, () -> {
+            contaService.transferir(new TransferenciaDTO(numberContaOrigem, numberContaDestino, amountToTransfer));
+        });
+
+        assertEquals("Transferências com valores negativos não são permitidas.", ex.getMessage());
+
+        verify(contaDao, times(1)).findByNumero(numberContaOrigem);
+        verify(contaDao, times(1)).findByNumero(numberContaDestino);
+    }
+
+    @Test
+    void transferirContaPadraoComSaldoInsuficiente() {
+        String numberContaOrigem = "123";
+        String numberContaDestino = "456";
+        Double initialBalanceOrigem = 100.0;
+        Double initialBalanceDestino = 500.0;
+        Double amountToTransfer = 1200.0;
+
+        ContaModel mockedContaOrigem = new ContaModel(numberContaOrigem, initialBalanceOrigem, TipoConta.PADRAO);
+        ContaModel mockedContaDestino = new ContaModel(numberContaDestino, initialBalanceDestino, TipoConta.PADRAO);
+
+        when(contaDao.findByNumero(numberContaOrigem)).thenReturn(Optional.of(mockedContaOrigem));
+        when(contaDao.findByNumero(numberContaDestino)).thenReturn(Optional.of(mockedContaDestino));
+        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        NotEnoughAccountBalanceException ex = assertThrows(NotEnoughAccountBalanceException.class, () -> {
+            contaService.transferir(new TransferenciaDTO(numberContaOrigem, numberContaDestino, amountToTransfer));
+        });
+
+        assertEquals("Saldo da conta 123 insuficiente. O limite mínimo permitido do saldo é de R$ -1000,00.", ex.getMessage());
+
+        verify(contaDao, times(1)).findByNumero(numberContaOrigem);
+        verify(contaDao, times(1)).findByNumero(numberContaDestino);
+    }
+
+    @Test
+    void transferirContaBonusComSaldoInsuficiente() {
+        String numberContaOrigem = "123";
+        String numberContaDestino = "456";
+        Double initialBalanceOrigem = 100.0;
+        Double initialBalanceDestino = 500.0;
+        Double amountToTransfer = 1200.0;
+
+        ContaBonusModel mockedContaOrigem = new ContaBonusModel(numberContaOrigem, initialBalanceOrigem, TipoConta.BONUS, 10);
+        ContaModel mockedContaDestino = new ContaModel(numberContaDestino, initialBalanceDestino, TipoConta.PADRAO);
+
+        when(contaDao.findByNumero(numberContaOrigem)).thenReturn(Optional.of(mockedContaOrigem));
+        when(contaDao.findByNumero(numberContaDestino)).thenReturn(Optional.of(mockedContaDestino));
+        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        NotEnoughAccountBalanceException ex = assertThrows(NotEnoughAccountBalanceException.class, () -> {
+            contaService.transferir(new TransferenciaDTO(numberContaOrigem, numberContaDestino, amountToTransfer));
+        });
+
+        assertEquals("Saldo da conta 123 insuficiente. O limite mínimo permitido do saldo é de R$ -1000,00.", ex.getMessage());
+
+        verify(contaDao, times(1)).findByNumero(numberContaOrigem);
+        verify(contaDao, times(1)).findByNumero(numberContaDestino);
+    }
+
+    @Test
+    void transferirContaPoupancaComSaldoInsuficiente() {
+        String numberContaOrigem = "123";
+        String numberContaDestino = "456";
+        Double initialBalanceOrigem = 100.0;
+        Double initialBalanceDestino = 500.0;
+        Double amountToTransfer = 200.0;
+
+        ContaPoupancaModel mockedContaOrigem = new ContaPoupancaModel(numberContaOrigem, initialBalanceOrigem, TipoConta.POUPANCA);
+        ContaModel mockedContaDestino = new ContaModel(numberContaDestino, initialBalanceDestino, TipoConta.PADRAO);
+
+        when(contaDao.findByNumero(numberContaOrigem)).thenReturn(Optional.of(mockedContaOrigem));
+        when(contaDao.findByNumero(numberContaDestino)).thenReturn(Optional.of(mockedContaDestino));
+        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        NotEnoughAccountBalanceException ex = assertThrows(NotEnoughAccountBalanceException.class, () -> {
+            contaService.transferir(new TransferenciaDTO(numberContaOrigem, numberContaDestino, amountToTransfer));
+        });
+
+        assertEquals("Saldo da conta 123 insuficiente. O limite mínimo permitido do saldo é de R$ 0,00.", ex.getMessage());
+
+        verify(contaDao, times(1)).findByNumero(numberContaOrigem);
+        verify(contaDao, times(1)).findByNumero(numberContaDestino);
+    }
+
+    @Test
+    void transferirParaContaBonusDeveIncrementarPontuacao() {
+        String numberContaOrigem = "123";
+        String numberContaDestino = "456";
+        Double initialBalanceOrigem = 1000.0;
+        Double initialBalanceDestino = 500.0;
+        Double amountToTransfer = 400.0;
+
+        ContaModel mockedContaOrigem = new ContaModel(numberContaOrigem, initialBalanceOrigem, TipoConta.PADRAO);
+        ContaBonusModel mockedContaDestino = new ContaBonusModel(numberContaDestino, initialBalanceDestino, TipoConta.BONUS, 10);
+
+        when(contaDao.findByNumero(numberContaOrigem)).thenReturn(Optional.of(mockedContaOrigem));
+        when(contaDao.findByNumero(numberContaDestino)).thenReturn(Optional.of(mockedContaDestino));
+        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        List<ContaModel> result = contaService.transferir(new TransferenciaDTO(numberContaOrigem, numberContaDestino, amountToTransfer));
+
+        assertEquals(2, result.size());
+        assertEquals(numberContaOrigem, result.get(0).getNumber());
+        assertEquals(initialBalanceOrigem - amountToTransfer, result.get(0).getBalance());
+        assertEquals(numberContaDestino, result.get(1).getNumber());
+        assertEquals(initialBalanceDestino + amountToTransfer, result.get(1).getBalance());
+
+        assertEquals(10 + (int) (amountToTransfer / 150), ((ContaBonusModel) result.get(1)).getPontuation());
+
+        verify(contaDao, times(1)).findByNumero(numberContaOrigem);
+        verify(contaDao, times(1)).findByNumero(numberContaDestino);
     }
 
     @Test
