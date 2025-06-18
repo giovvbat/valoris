@@ -385,4 +385,58 @@ public class ContaServiceTest {
         assertEquals("Nenhuma conta de tipo poupança cadastrada.", ex.getMessage());
         verify(contaDao, times(1)).findAll();
     }
+
+    @Test
+    void creditarCasoNormal() {
+        String numberConta = "123";
+        Double balanceConta = 100.0;
+        Double amountToCredit = 50.0;
+
+        ContaModel mockedConta = new ContaModel(numberConta, balanceConta, TipoConta.PADRAO);
+
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
+        TransacaoDTO transacaoDTO = new TransacaoDTO(amountToCredit);
+
+        ContaModel result = contaService.creditarConta(numberConta, transacaoDTO);
+
+        assertEquals(balanceConta + amountToCredit, result.getBalance());
+        verify(contaDao, times(1)).findByNumero(numberConta);
+    }
+
+    @Test
+    void creditarCasoNegativo() {
+        String numberConta = "123";
+        Double initialBalance = 1000.0;
+        Double amountToCredit = -200.0;
+        ContaModel mockedConta = new ContaModel(numberConta, initialBalance, TipoConta.PADRAO);
+
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
+
+        InvalidAmountException ex = assertThrows(InvalidAmountException.class, () -> {
+            contaService.debitarConta(numberConta, new TransacaoDTO(amountToCredit));
+        });
+
+        assertEquals("Transações com valores negativos não são permitidas.", ex.getMessage());
+        verify(contaDao, times(1)).findByNumero(numberConta);
+    }
+
+    @Test
+    void creditarContaBonusDeveIncrementarPontuacao() {
+        String numberConta = "123";
+        Double initialBalance = 200.0;
+        Integer initialPontuation = 5;
+        Double amountToCredit = 300.0;
+
+        ContaBonusModel mockedConta = new ContaBonusModel(numberConta, initialBalance, TipoConta.BONUS, initialPontuation);
+        TransacaoDTO dto = new TransacaoDTO(amountToCredit);
+
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
+
+        ContaModel result = contaService.creditarConta(numberConta, dto);
+
+        assertEquals(initialBalance + amountToCredit, result.getBalance());
+        assertInstanceOf(ContaBonusModel.class, result);
+        assertEquals(initialPontuation + ((int) (amountToCredit / 100)), ((ContaBonusModel) result).getPontuation());
+        verify(contaDao, times(1)).findByNumero(numberConta);
+    }
 }
