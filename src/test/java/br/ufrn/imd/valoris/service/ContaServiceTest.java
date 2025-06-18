@@ -187,5 +187,69 @@ public class ContaServiceTest {
         verify(contaDao, never()).saveConta(any());
     }
 
+    @Test
+    void consultarContaQuandoContaPadraoExiste() {
+        String numberConta = "123";
+        Double balanceConta = 100.0;
+        ContaModel mockedConta = new ContaModel(numberConta, balanceConta, TipoConta.PADRAO);
+
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
+
+        ContaModel result = contaService.findByNumeroIfExists(numberConta);
+
+        assertEquals(mockedConta.getNumber(), result.getNumber());
+        assertEquals(mockedConta.getBalance(), result.getBalance());
+        assertEquals(TipoConta.PADRAO, result.getType());
+        assertFalse(result instanceof ContaBonusModel);
+        assertFalse(result instanceof ContaPoupancaModel);
+        verify(contaDao, times(1)).findByNumero(numberConta);
+    }
+
+    @Test
+    void consultarContaQuandoContaPoupancaExiste() {
+        String numberConta = "123";
+        Double balanceConta = 100.0;
+        ContaPoupancaModel mockedConta = new ContaPoupancaModel(numberConta, balanceConta, TipoConta.POUPANCA);
+
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
+
+        ContaModel result = contaService.findByNumeroIfExists(numberConta);
+
+        assertEquals(mockedConta.getNumber(), result.getNumber());
+        assertEquals(mockedConta.getBalance(), result.getBalance());
+        assertEquals(TipoConta.POUPANCA, result.getType());
+        assertInstanceOf(ContaPoupancaModel.class, result);
+        verify(contaDao, times(1)).findByNumero(numberConta);
+    }
+
+    @Test
+    void consultarContaQuandoContaBonusExiste() {
+        String numberConta = "123";
+        ContaBonusModel mockedConta = new ContaBonusModel(numberConta, null, TipoConta.BONUS, 10);
+
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
+
+        ContaModel result = contaService.findByNumeroIfExists(numberConta);
+
+        assertEquals(mockedConta.getNumber(), result.getNumber());
+        assertEquals(mockedConta.getBalance(), result.getBalance());
+        assertEquals(TipoConta.BONUS, result.getType());
+        assertInstanceOf(ContaBonusModel.class, result);
+        assertEquals(mockedConta.getPontuation(), ((ContaBonusModel) result).getPontuation());
+        verify(contaDao, times(1)).findByNumero(numberConta);
+    }
+
+    @Test
+    void consultarContaQuandoNaoExiste() {
+        String numberConta = "123";
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> {
+            contaService.findByNumeroIfExists(numberConta);
+        });
+
+        assertEquals("Conta de número 123 não encontrada.", ex.getMessage());
+        verify(contaDao, times(1)).findByNumero(numberConta);
+    }
 
 }
