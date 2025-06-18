@@ -3,10 +3,7 @@ package br.ufrn.imd.valoris.service;
 import br.ufrn.imd.valoris.dao.ContaDao;
 import br.ufrn.imd.valoris.dto.*;
 import br.ufrn.imd.valoris.enums.TipoConta;
-import br.ufrn.imd.valoris.exception.InitialBalanceMissingException;
-import br.ufrn.imd.valoris.exception.NotEnoughAccountBalanceException;
-import br.ufrn.imd.valoris.exception.ResourceAlreadyExistsException;
-import br.ufrn.imd.valoris.exception.ResourceNotFoundException;
+import br.ufrn.imd.valoris.exception.*;
 import br.ufrn.imd.valoris.model.ContaBonusModel;
 import br.ufrn.imd.valoris.model.ContaModel;
 
@@ -49,6 +46,11 @@ public class ContaService {
 
     public ContaModel debitarConta(String numero, TransacaoDTO transacaoDTO) {
         ContaModel conta = findByNumeroIfExists(numero);
+
+        if (transacaoDTO.amount() < 0) {
+            throw new InvalidAmountException("Transações com valores negativos não são permitidas.");
+        }
+
         verificarSaldoSuficiente(conta, transacaoDTO.amount());
         conta.debitar(transacaoDTO.amount());
         return conta;
@@ -56,6 +58,11 @@ public class ContaService {
 
     public ContaModel creditarConta(String numero, TransacaoDTO transacaoDTO) {
         ContaModel conta = findByNumeroIfExists(numero);
+
+        if (transacaoDTO.amount() < 0) {
+            throw new InvalidAmountException("Transações com valores negativos não são permitidas.");
+        }
+
         conta.creditar(transacaoDTO.amount());
         incrementarPontuacao(conta, determinarPontosIncrementados(transacaoDTO.amount(), 100));
         return conta;
@@ -64,6 +71,11 @@ public class ContaService {
     public List<ContaModel> transferir(TransferenciaDTO transferenciaDTO) {
         ContaModel contaOrigem = findByNumeroIfExists(transferenciaDTO.from());
         ContaModel contaDestino = findByNumeroIfExists(transferenciaDTO.to());
+
+        if (transferenciaDTO.amount() < 0) {
+            throw new InvalidAmountException("Transferências com valores negativos não são permitidas.");
+        }
+
         verificarSaldoSuficiente(contaOrigem, transferenciaDTO.amount());
         contaOrigem.debitar(transferenciaDTO.amount());
         contaDestino.creditar(transferenciaDTO.amount());
@@ -108,14 +120,22 @@ public class ContaService {
     }
 
     public List<ContaModel> renderJuros(RenderJurosDTO renderJurosDTO) {
+        if (renderJurosDTO.tax() <= 0) {
+            throw new InvalidAmountException("Não é possível render juros com valores negativos.");
+        }
+
         List<ContaModel> contas = contaDao.findAll();
         List<ContaModel> contasAtualizadas = new ArrayList<>();
 
-        for(ContaModel conta: contas) {
+        for (ContaModel conta: contas) {
             if (conta instanceof ContaPoupancaModel contaPoupanca) {
                 contaPoupanca.renderJuros(renderJurosDTO.tax());
                 contasAtualizadas.add(conta);
             }
+        }
+
+        if (contasAtualizadas.isEmpty()) {
+            throw new ResourceNotFoundException("Nenhuma conta de tipo poupança cadastrada.");
         }
 
         return contasAtualizadas;
@@ -135,6 +155,7 @@ public class ContaService {
             throw new InitialBalanceMissingException("Saldo inicial obrigatório para contas do tipo poupança.");
         }
 
+        verificarSaldoInicial(contaDTO);
         ContaPoupancaModel contaPoupanca = new ContaPoupancaModel();
         setarAtributosDeContaComuns(contaDTO, contaPoupanca);
         contaPoupanca.setBalance(contaDTO.balance());
@@ -147,6 +168,7 @@ public class ContaService {
             throw new InitialBalanceMissingException("Saldo inicial obrigatório para contas do tipo padrão.");
         }
 
+        verificarSaldoInicial(contaDTO);
         ContaModel contaPadrao = new ContaModel();
         setarAtributosDeContaComuns(contaDTO, contaPadrao);
         contaPadrao.setBalance(contaDTO.balance());
@@ -157,5 +179,11 @@ public class ContaService {
     private void setarAtributosDeContaComuns(ContaDTO contaDTO, ContaModel contaModel) {
         contaModel.setNumber(contaDTO.number());
         contaModel.setType(contaDTO.type());
+    }
+
+    private void verificarSaldoInicial(ContaDTO contaDTO) {
+        if (contaDTO.balance() < 0) {
+            throw new InvalidAmountException("Não é permitido criar uma conta com saldo negativo.");
+        }
     }
 }
