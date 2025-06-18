@@ -413,7 +413,7 @@ public class ContaServiceTest {
         when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
 
         InvalidAmountException ex = assertThrows(InvalidAmountException.class, () -> {
-            contaService.debitarConta(numberConta, new TransacaoDTO(amountToCredit));
+            contaService.creditarConta(numberConta, new TransacaoDTO(amountToCredit));
         });
 
         assertEquals("Transações com valores negativos não são permitidas.", ex.getMessage());
