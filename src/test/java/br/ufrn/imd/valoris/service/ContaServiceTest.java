@@ -61,15 +61,17 @@ public class ContaServiceTest {
 
     @Test
     void cadastrarContaPadraoQuandoNumeroNaoExiste() {
-        ContaDTO contaDTO = new ContaDTO("123", TipoConta.PADRAO,500.0);
+        String numberConta = "123";
+        Double balanceConta = 100.0;
+        ContaDTO contaDTO = new ContaDTO(numberConta, TipoConta.PADRAO,balanceConta);
 
-        when(contaDao.findByNumero("123")).thenReturn(Optional.empty());
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.empty());
         when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ContaModel result = contaService.cadastrarConta(contaDTO);
 
-        assertEquals("123", result.getNumber());
-        assertEquals(500.0, result.getBalance());
+        assertEquals(contaDTO.number(), result.getNumber());
+        assertEquals(contaDTO.balance(), result.getBalance());
         assertEquals(TipoConta.PADRAO, result.getType());
         assertFalse(result instanceof ContaBonusModel);
         assertFalse(result instanceof ContaPoupancaModel);
@@ -78,14 +80,15 @@ public class ContaServiceTest {
 
     @Test
     void cadastrarContaBonusQuandoNumeroNaoExiste() {
-        ContaDTO contaDTO = new ContaDTO("456", TipoConta.BONUS, null);
+        String numberConta = "456";
+        ContaDTO contaDTO = new ContaDTO(numberConta, TipoConta.BONUS, null);
 
-        when(contaDao.findByNumero("456")).thenReturn(Optional.empty());
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.empty());
         when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ContaModel result = contaService.cadastrarConta(contaDTO);
 
-        assertEquals("456", result.getNumber());
+        assertEquals(contaDTO.number(), result.getNumber());
         assertEquals(0.0, result.getBalance());
         assertEquals(TipoConta.BONUS, result.getType());
         assertInstanceOf(ContaBonusModel.class, result);
@@ -95,14 +98,16 @@ public class ContaServiceTest {
 
     @Test
     void cadastrarContaBonusIgnorandoSaldoInicial() {
-        ContaDTO contaDTO = new ContaDTO("456", TipoConta.BONUS, 500.0);
+        String numberConta = "456";
+        Double balanceConta = 100.0;
+        ContaDTO contaDTO = new ContaDTO(numberConta, TipoConta.BONUS, balanceConta);
 
-        when(contaDao.findByNumero("456")).thenReturn(Optional.empty());
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.empty());
         when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ContaModel result = contaService.cadastrarConta(contaDTO);
 
-        assertEquals("456", result.getNumber());
+        assertEquals(contaDTO.number(), result.getNumber());
         assertEquals(0.0, result.getBalance());
         assertEquals(TipoConta.BONUS, result.getType());
         assertInstanceOf(ContaBonusModel.class, result);
@@ -112,15 +117,17 @@ public class ContaServiceTest {
 
     @Test
     void cadastrarContaPoupancaQuandoNumeroNaoExiste() {
-        ContaDTO contaDTO = new ContaDTO("789", TipoConta.POUPANCA, 1000.0);
+        String numberConta = "789";
+        Double balanceConta = 1000.0;
+        ContaDTO contaDTO = new ContaDTO(numberConta, TipoConta.POUPANCA, balanceConta);
 
-        when(contaDao.findByNumero("789")).thenReturn(Optional.empty());
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.empty());
         when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ContaModel result = contaService.cadastrarConta(contaDTO);
 
-        assertEquals("789", result.getNumber());
-        assertEquals(1000.0, result.getBalance());
+        assertEquals(contaDTO.number(), result.getNumber());
+        assertEquals(contaDTO.balance(), result.getBalance());
         assertEquals(TipoConta.POUPANCA, result.getType());
         assertInstanceOf(ContaPoupancaModel.class, result);
         verify(contaDao, times(1)).saveConta(any());
@@ -129,9 +136,10 @@ public class ContaServiceTest {
     @ParameterizedTest
     @MethodSource("tiposConta")
     void cadastrarContaQuandoNumeroJaExiste(TipoConta type, Double balance) {
-        ContaDTO contaDTO = new ContaDTO("123", type, balance);
+        String numberConta = "123";
+        ContaDTO contaDTO = new ContaDTO(numberConta, type, balance);
 
-        when(contaDao.findByNumero("123")).thenReturn(Optional.of(new ContaModel()));
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(new ContaModel()));
 
         ResourceAlreadyExistsException ex = assertThrows(ResourceAlreadyExistsException.class, () -> {
             contaService.cadastrarConta(contaDTO);
@@ -151,9 +159,10 @@ public class ContaServiceTest {
 
     @Test
     void cadastrarContaPoupancaSemSaldoInicial() {
-        ContaDTO contaDTO = new ContaDTO("123", TipoConta.POUPANCA,null);
+        String numberConta = "123";
+        ContaDTO contaDTO = new ContaDTO(numberConta, TipoConta.POUPANCA,null);
 
-        when(contaDao.findByNumero("123")).thenReturn(Optional.empty());
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.empty());
 
         InitialBalanceMissingException ex = assertThrows(InitialBalanceMissingException.class, () -> {
             contaService.cadastrarConta(contaDTO);
@@ -165,9 +174,10 @@ public class ContaServiceTest {
 
     @Test
     void cadastrarContaPadraoSemSaldoInicial() {
-        ContaDTO contaDTO = new ContaDTO("123", TipoConta.PADRAO, null);
+        String numberConta = "123";
+        ContaDTO contaDTO = new ContaDTO(numberConta, TipoConta.PADRAO, null);
 
-        when(contaDao.findByNumero("123")).thenReturn(Optional.empty());
+        when(contaDao.findByNumero(numberConta)).thenReturn(Optional.empty());
 
         InitialBalanceMissingException ex = assertThrows(InitialBalanceMissingException.class, () -> {
             contaService.cadastrarConta(contaDTO);
@@ -176,4 +186,6 @@ public class ContaServiceTest {
         assertEquals("Saldo inicial obrigatório para contas do tipo padrão.", ex.getMessage());
         verify(contaDao, never()).saveConta(any());
     }
+
+
 }
