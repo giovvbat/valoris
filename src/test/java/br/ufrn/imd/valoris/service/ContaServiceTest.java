@@ -251,5 +251,4 @@ public class ContaServiceTest {
         assertEquals("Conta de número 123 não encontrada.", ex.getMessage());
         verify(contaDao, times(1)).findByNumero(numberConta);
     }
-
 }
