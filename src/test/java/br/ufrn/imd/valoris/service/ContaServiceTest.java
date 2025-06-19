@@ -260,7 +260,6 @@ public class ContaServiceTest {
         ContaModel mockedConta = new ContaModel(numberConta, initialBalance, TipoConta.PADRAO);
 
         when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
-        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ContaModel result = contaService.debitarConta(numberConta, new TransacaoDTO(amountToDebit));
 
@@ -278,7 +277,6 @@ public class ContaServiceTest {
         ContaModel mockedConta = new ContaModel(numberConta, initialBalance, TipoConta.PADRAO);
 
         when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
-        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         InvalidAmountException ex = assertThrows(InvalidAmountException.class, () -> {
             contaService.debitarConta(numberConta, new TransacaoDTO(amountToDebit));
