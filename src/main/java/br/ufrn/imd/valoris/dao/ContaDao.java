@@ -10,7 +10,7 @@ public class ContaDao {
     private final Map<String, ContaModel> contas = new HashMap<>();
 
     public ContaModel saveConta(ContaModel contaModel) {
-        contas.put(contaModel.getNumero(), contaModel);
+        contas.put(contaModel.getNumber(), contaModel);
         return contaModel;
     }
 
