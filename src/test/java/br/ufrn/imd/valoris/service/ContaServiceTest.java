@@ -352,7 +352,6 @@ public class ContaServiceTest {
 
         when(contaDao.findByNumero(numberContaOrigem)).thenReturn(Optional.of(mockedContaOrigem));
         when(contaDao.findByNumero(numberContaDestino)).thenReturn(Optional.of(mockedContaDestino));
-        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         List<ContaModel> result = contaService.transferir(new TransferenciaDTO(numberContaOrigem, numberContaDestino, amountToTransfer));
 
@@ -379,7 +378,6 @@ public class ContaServiceTest {
 
         when(contaDao.findByNumero(numberContaOrigem)).thenReturn(Optional.of(mockedContaOrigem));
         when(contaDao.findByNumero(numberContaDestino)).thenReturn(Optional.of(mockedContaDestino));
-        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         InvalidAmountException ex = assertThrows(InvalidAmountException.class, () -> {
             contaService.transferir(new TransferenciaDTO(numberContaOrigem, numberContaDestino, amountToTransfer));
@@ -404,7 +402,6 @@ public class ContaServiceTest {
 
         when(contaDao.findByNumero(numberContaOrigem)).thenReturn(Optional.of(mockedContaOrigem));
         when(contaDao.findByNumero(numberContaDestino)).thenReturn(Optional.of(mockedContaDestino));
-        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         NotEnoughAccountBalanceException ex = assertThrows(NotEnoughAccountBalanceException.class, () -> {
             contaService.transferir(new TransferenciaDTO(numberContaOrigem, numberContaDestino, amountToTransfer));
@@ -429,7 +426,6 @@ public class ContaServiceTest {
 
         when(contaDao.findByNumero(numberContaOrigem)).thenReturn(Optional.of(mockedContaOrigem));
         when(contaDao.findByNumero(numberContaDestino)).thenReturn(Optional.of(mockedContaDestino));
-        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         NotEnoughAccountBalanceException ex = assertThrows(NotEnoughAccountBalanceException.class, () -> {
             contaService.transferir(new TransferenciaDTO(numberContaOrigem, numberContaDestino, amountToTransfer));
@@ -454,7 +450,6 @@ public class ContaServiceTest {
 
         when(contaDao.findByNumero(numberContaOrigem)).thenReturn(Optional.of(mockedContaOrigem));
         when(contaDao.findByNumero(numberContaDestino)).thenReturn(Optional.of(mockedContaDestino));
-        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         NotEnoughAccountBalanceException ex = assertThrows(NotEnoughAccountBalanceException.class, () -> {
             contaService.transferir(new TransferenciaDTO(numberContaOrigem, numberContaDestino, amountToTransfer));
@@ -479,7 +474,6 @@ public class ContaServiceTest {
 
         when(contaDao.findByNumero(numberContaOrigem)).thenReturn(Optional.of(mockedContaOrigem));
         when(contaDao.findByNumero(numberContaDestino)).thenReturn(Optional.of(mockedContaDestino));
-        when(contaDao.saveConta(any(ContaModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         List<ContaModel> result = contaService.transferir(new TransferenciaDTO(numberContaOrigem, numberContaDestino, amountToTransfer));
 
