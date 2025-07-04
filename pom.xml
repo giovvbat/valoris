@@ -80,6 +80,31 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.24.0</version> <configuration>
+				<rulesets>
+					<ruleset>/category/java/bestpractices.xml</ruleset>
+					<ruleset>/category/java/codestyle.xml</ruleset>
+					<ruleset>/category/java/design.xml</ruleset>
+					<ruleset>/category/java/errorprone.xml</ruleset>
+					<ruleset>/category/java/multithreading.xml</ruleset>
+					<ruleset>/category/java/performance.xml</ruleset>
+				</rulesets>
+				<linkXRef>false</linkXRef>
+				<format>html</format>
+				<targetJdk>21</targetJdk>
+				<failOnViolation>true</failOnViolation>
+				<failurePriority>2</failurePriority> </configuration>
+				<executions>
+					<execution>
+						<phase>verify</phase> <goals>
+						<goal>check</goal>
+					</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
