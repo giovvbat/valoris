@@ -62,7 +62,7 @@ jobs:
 
     - name: Create new tag ${{ steps.get-next-tag.outputs.next_tag }}
       run: |
-        git tag "${{ steps.get-next-tag.outputs.next_tag }}" origin/staging
+        git tag "${{ steps.get-next-tag.outputs.next_tag }}" origin/production
         git push origin "${{ steps.get-next-tag.outputs.next_tag }}"
 
     - name: Create zip archive
