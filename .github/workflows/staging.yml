@@ -1,0 +1,66 @@
+name: Staging CI
+
+on:
+  push:
+    branches: [ "staging" ]
+    tags-ignore:
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+    - name: Resolve dependencies
+      run: mvn dependency:go-offline
+    - name: Build with Maven
+      run: mvn -B clean package -DskipTests
+    - name: Run static analysis
+      run: mvn pmd:pmd pmd:check
+    - name: Run tests
+      run: mvn -B test
+      env:
+        JAVA_TOOL_OPTIONS: "-Duser.language=pt -Duser.country=BR -Dfile.encofing=UTF-8"
+        
+    - name: Find next rc tag
+      id: get-next-tag
+      run: |
+        latest_rc_tag=$(git tag -l 'rc-*' | grep -E '^rc-[0-9]+\.[0-9]+$' | sed 's/rc-//' | sort -t. -k1,1n -k2,2n | tail -n1)
+
+        if [ -z "$latest_rc_tag" ]; then
+          major=1
+          minor=0
+        else
+          major=$(echo "$latest_rc_tag" | cut -d. -f1)
+          minor=$(echo "$latest_rc_tag" | cut -d. -f2)
+          minor=$((minor + 1))
+        fi
+
+        next_tag="rc-${major}.${minor}"
+        echo "next_tag=$next_tag" >> "$GITHUB_OUTPUT"
+
+    - name: Create new tag ${{ steps.get-next-tag.outputs.next_tag }}
+      run: |
+        git tag "${{ steps.get-next-tag.outputs.next_tag }}" origin/staging
+        git push origin "${{ steps.get-next-tag.outputs.next_tag }}"
+
+    - name: Create zip archive
+      run: |
+        zip_name="${{ steps.get-next-tag.outputs.next_tag }}.zip"
+        zip -r "$zip_name" . -x ".git/*"
+        ls -lh "$zip_name"
+
+    - name: Publish package as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.get-next-tag.outputs.next_tag }}
+        path: ${{ steps.get-next-tag.outputs.next_tag }}.zip
