@@ -19,7 +19,7 @@ public class ContaController {
 
     @PostMapping
     public ContaModel cadastrarConta(@RequestBody @Valid ContaDTO contaDTO) {
-        return contaService.cadastrarConta(contaDTO);
+        return contaService.cadastrarConta(contaDTO)
     }
 
     @GetMapping("/{id}")
