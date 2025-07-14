@@ -63,7 +63,6 @@ public class ContaService {
             throw new InvalidAmountException("Transações com valores negativos não são permitidas.");
         }
 
-        conta.creditar(transacaoDTO.amount());
         incrementarPontuacao(conta, determinarPontosIncrementados(transacaoDTO.amount(), 100));
         return conta;
     }
