@@ -307,7 +307,7 @@ public class ContaServiceTest {
     void debitarContaBonusComSaldoInsuficiente() {
         String numberConta = "123";
         Double initialBalance = 100.0;
-        Double amountToDebit = 1200.0;
+        Double amountToDebit = 2200.0;
         ContaBonusModel mockedConta = new ContaBonusModel(numberConta, initialBalance, TipoConta.BONUS, 10);
 
         when(contaDao.findByNumero(numberConta)).thenReturn(Optional.of(mockedConta));
@@ -316,7 +316,7 @@ public class ContaServiceTest {
             contaService.debitarConta(numberConta, new TransacaoDTO(amountToDebit));
         });
 
-        assertEquals("Saldo da conta 123 insuficiente. O limite mínimo permitido do saldo é de R$ -1000,00.", ex.getMessage());
+        assertEquals("Saldo da conta 123 insuficiente. O limite mínimo permitido do saldo é de R$ -2000,00.", ex.getMessage());
         verify(contaDao, times(1)).findByNumero(numberConta);
     }
 
@@ -417,7 +417,7 @@ public class ContaServiceTest {
         String numberContaDestino = "456";
         Double initialBalanceOrigem = 100.0;
         Double initialBalanceDestino = 500.0;
-        Double amountToTransfer = 1200.0;
+        Double amountToTransfer = 2200.0;
 
         ContaBonusModel mockedContaOrigem = new ContaBonusModel(numberContaOrigem, initialBalanceOrigem, TipoConta.BONUS, 10);
         ContaModel mockedContaDestino = new ContaModel(numberContaDestino, initialBalanceDestino, TipoConta.PADRAO);
@@ -429,7 +429,7 @@ public class ContaServiceTest {
             contaService.transferir(new TransferenciaDTO(numberContaOrigem, numberContaDestino, amountToTransfer));
         });
 
-        assertEquals("Saldo da conta 123 insuficiente. O limite mínimo permitido do saldo é de R$ -1000,00.", ex.getMessage());
+        assertEquals("Saldo da conta 123 insuficiente. O limite mínimo permitido do saldo é de R$ -2000,00.", ex.getMessage());
 
         verify(contaDao, times(1)).findByNumero(numberContaOrigem);
         verify(contaDao, times(1)).findByNumero(numberContaDestino);
