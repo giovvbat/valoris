@@ -90,7 +90,15 @@ public class ContaService {
 
     private void verificarSaldoSuficiente(ContaModel conta, Double valorRequerido) {
         Double novoSaldo = conta.getBalance() - valorRequerido;
-        Double limite = (conta instanceof ContaPoupancaModel) ? 0.0 : -1000.0;
+        Double limite;
+
+        if (conta instanceof ContaPoupancaModel) {
+            limite = 0.0;
+        } else if (conta instanceof ContaBonusModel) {
+            limite = -2000.0;
+        } else {
+            limite = -1000.0;
+        }
 
         if (novoSaldo < limite) {
             throw new NotEnoughAccountBalanceException(
